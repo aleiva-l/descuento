@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Validar Descuento QR</title>
+</head>
+<body>
+  <h2>Validación de Código de Descuento</h2>
+  <p id="codigoView">📄 Código leído: <code></code></p>
+  <p id="comercioInvitadoView">🏪 Comercio invitado: <code></code></p>
+
+  <label for="comercioValidador">Ingrese nombre del comercio validador:</label>
+  <input type="text" id="comercioValidador" placeholder="Ej: Comercio1" required />
+  <br><br>
+
+  <button id="validarBtn">✅ Validar</button>
+  <div id="resultado" style="margin-top:20px;"></div>
+
+  <script>
+    const queryParams = new URLSearchParams(window.location.search);
+    const codigo = queryParams.get("codigo");
+    const comercioInvitado = queryParams.get("comercio_codigo");
+    const scriptBaseURL = "https://script.google.com/macros/s/AKfycbz4xVKqtKz-vzY8ceU_pUJR-S5v_2af9fkTb2GgVyxZ8KBeUZNzAJCziJRMIXtuevYV/exec";
+
+    if (codigo) {
+      document.querySelector("#codigoView code").textContent = codigo;
+    }
+
+    if (comercioInvitado) {
+      document.querySelector("#comercioInvitadoView code").textContent = decodeURIComponent(comercioInvitado);
+    }
+
+    document.getElementById("validarBtn").addEventListener("click", () => {
+      const comercioValidador = document.getElementById("comercioValidador").value.trim();
+      if (!codigo || !comercioInvitado || !comercioValidador) {
+        alert("Falta código o nombre del comercio.");
+        return;
+      }
+
+      const url = `${scriptBaseURL}?codigo=${encodeURIComponent(codigo)}&comercio_invitado=${encodeURIComponent(comercioInvitado)}&comercio_validador=${encodeURIComponent(comercioValidador)}&accion=validar`;
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          const div = document.getElementById("resultado");
+          if (!data.success) {
+            div.innerHTML = "<h3 style='color:red;'>Código inválido o comercio no autorizado.</h3>";
+            return;
+          }
+          if (data.estado === "Canjeado") {
+            div.innerHTML = "<h3 style='color:red;'>Este código ya fue canjeado.</h3>";
+          } else {
+            div.innerHTML = `<h3>Descuento: ${data.descuento}</h3>
+              <button onclick="canjear('${codigo}', '${comercioInvitado}', '${comercioValidador}')">🎟️ Canjear ahora</button>`;
+          }
+        })
+        .catch(() => {
+          document.getElementById("resultado").innerHTML = "<h3 style='color:red;'>Error al validar el código.</h3>";
+        });
+    });
+
+    function canjear(codigo, comercioInvitado, comercioValidador) {
+      const url = `${scriptBaseURL}?codigo=${encodeURIComponent(codigo)}&comercio_invitado=${encodeURIComponent(comercioInvitado)}&comercio_validador=${encodeURIComponent(comercioValidador)}&accion=canjear`;
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.estado === "CanjeadoAhora") {
+            document.getElementById("resultado").innerHTML = "<h3 style='color:green;'>¡Descuento canjeado exitosamente!</h3>";
+          } else {
+            document.getElementById("resultado").innerHTML = "<h3 style='color:red;'>No se pudo canjear el descuento.</h3>";
+          }
+        })
+        .catch(() => {
+          document.getElementById("resultado").innerHTML = "<h3 style='color:red;'>Error al canjear el código.</h3>";
+        });
+    }
+  </script>
+</body>
+</html>
