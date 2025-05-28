@@ -91,7 +91,7 @@
     const queryParams = new URLSearchParams(window.location.search);
     const codigo = queryParams.get("codigo");
     const comercioInvitado = queryParams.get("comercio_codigo");
-    const scriptBaseURL = "https://script.google.com/macros/s/AKfycbxukDxKn8jVPnocFHY9zWO8kK5TAnXXFNuyRmGfCayXFO6hlKelc6xgTjoBze_hBL5h/exec";
+    const scriptBaseURL = "https://script.google.com/macros/s/AKfycbyT8Bpj7J4oQpyAwD9QtqVT4_iFG_pzfxf1s_gLpy4j7aJYEC441N22bB6BmSDFoKH6/exec";
 
     if (codigo) {
       document.querySelector("#codigoView code").textContent = codigo;
@@ -120,7 +120,11 @@
           if (data.estado === "Canjeado") {
             div.innerHTML = "<h3 style='color:red;'>Este código ya fue canjeado.</h3>";
           } else {
-            div.innerHTML = `<h3>Descuento: ${data.descuento}</h3>
+            let descuento = data.descuento;
+            if (typeof descuento === "number") {
+                descuento = (descuento * 100).toFixed(0) + "%";
+            }
+            div.innerHTML = `<h3>Descuento: ${descuento}</h3>
               <button onclick="canjear('${codigo}', '${comercioInvitado}', '${comercioValidador}')">🎟️ Canjear ahora</button>`;
           }
         })
