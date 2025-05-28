@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -64,6 +63,29 @@
             font-weight: bold;
             margin-top: 20px;
         }
+        .telefono-group {
+            display: flex;
+            align-items: center;
+        }
+        .telefono-prefix {
+            padding: 10px;
+            background-color: #e9e9e9;
+            border: 1px solid #ccc;
+            border-radius: 5px 0 0 5px;
+            font-size: 1rem;
+        }
+        .telefono-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-left: none;
+            border-radius: 0 5px 5px 0;
+            font-size: 1rem;
+        }
+        .error {
+            color: red;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -76,7 +98,14 @@
     <form id="sorteoForm">
         <input type="text" id="nombre" name="nombre" placeholder="Escribe tu nombre" required>
         <input type="text" id="dni" name="dni" placeholder="Últimos 3 dígitos de DNI" maxlength="3" required>
-        <input type="tel" id="celular" name="celular" placeholder="Número de celular" required>
+        
+        <div class="telefono-group">
+            <span class="telefono-prefix">+54</span>
+            <input type="tel" id="celular" name="celular" class="telefono-input" placeholder="1123456789" required>
+        </div>
+        <small>Ingresá el número sin el 9 inicial (ej: 1123456789)</small>
+        <div id="errorCelular" class="error"></div>
+        
         <button type="submit">Enviar</button>
     </form>
     
@@ -84,7 +113,6 @@
 </div>
 
 <script>
-    // Función para obtener los parámetros de la URL
     function getQueryParams() {
         const params = {};
         window.location.search.substring(1).split("&").forEach(function (pair) {
@@ -96,51 +124,55 @@
         return params;
     }
 
-    // Obtener los parámetros de la URL y asignarlos a los elementos
     const params = getQueryParams();
     document.getElementById('comercio').textContent = `Comercio: ${params.comercio || "No especificado"}`;
     document.getElementById('fecha').textContent = `Fecha: ${params.fechaSorteo || "No especificada"}`;
 
-    // Manejar el envío del formulario
     document.getElementById('sorteoForm').addEventListener('submit', function(event) {
         event.preventDefault();
 
-        const nombre = document.getElementById('nombre').value;
-        const dni = document.getElementById('dni').value;
-        const celular = document.getElementById('celular').value;
+        const nombre = document.getElementById('nombre').value.trim();
+        const dni = document.getElementById('dni').value.trim();
+        const celularSinPrefijo = document.getElementById('celular').value.trim();
+        const celularCompleto = `+54${celularSinPrefijo}`;
+        const errorCelular = document.getElementById('errorCelular');
+        errorCelular.textContent = '';
 
-        // Validación de DNI
+        // Validar DNI
         if (dni.length !== 3 || isNaN(dni)) {
             alert("Por favor ingresa los últimos 3 dígitos válidos del DNI.");
             return;
         }
 
-        // Obtener referencia al botón de envío
-        const submitButton = event.target.querySelector('button');
-        submitButton.disabled = true; // Desactivar botón
+        // Validar celular (10 dígitos, sin 9 ni 0 inicial)
+        const celularValido = /^[1-9][0-9]{9}$/.test(celularSinPrefijo);
+        if (!celularValido) {
+            errorCelular.textContent = "Número inválido. Debe tener 10 dígitos sin el 9 ni 0 inicial.";
+            return;
+        }
 
-        // URL del Google Apps Script (reemplaza con tu URL de Apps Script)
+        const submitButton = event.target.querySelector('button');
+        submitButton.disabled = true;
+
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxNyx74VqJBg9xdMcJ8RFuAYidGepV4tNFltk7oQG41rjO0FNoMPwU7vdhigndA8uP5FQ/exec';
 
-        // Crear objeto de datos para enviar
         const formData = new FormData();
         formData.append('comercio', params.comercio || "No especificado");
         formData.append('fecha', params.fechaSorteo || "No especificada");
         formData.append('nombre', nombre);
         formData.append('dni', dni);
-        formData.append('celular', celular);
+        formData.append('celular', celularCompleto);
 
-        // Enviar datos al Google Apps Script
         fetch(scriptURL, { method: 'POST', body: formData, mode: 'no-cors' })
             .then(response => {
                 document.getElementById('mensaje').textContent = '¡Gracias por participar en el sorteo!';
-                document.getElementById('sorteoForm').reset(); // Limpiar el formulario
+                document.getElementById('sorteoForm').reset();
             })
             .catch(error => {
                 document.getElementById('mensaje').textContent = 'Error al enviar el formulario. Inténtalo nuevamente.';
             })
             .finally(() => {
-                submitButton.disabled = false; // Reactivar botón al finalizar
+                submitButton.disabled = false;
             });
     });
 </script>
