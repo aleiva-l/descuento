@@ -114,7 +114,8 @@
         .then(data => {
           const div = document.getElementById("resultado");
           if (!data.success) {
-            div.innerHTML = "<h3 style='color:red;'>Código inválido o comercio no autorizado.</h3>";
+            const mensajeError = data.error || "Código inválido o comercio no autorizado.";
+            div.innerHTML = `<h3 style='color:red;'>${mensajeError}</h3>`;
             return;
           }
           if (data.estado === "Canjeado") {
