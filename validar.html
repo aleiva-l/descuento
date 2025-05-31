@@ -93,7 +93,7 @@
     const codigo = queryParams.get("codigo");
     const comercioInvitado = queryParams.get("comercio_codigo");
     const fechaMaximaParam = queryParams.get("fecha_maxima");
-    const scriptBaseURL = "https://script.google.com/macros/s/AKfycbyTiBMwE9upayJRiEhDHFZwhb6UpFHukP2MHiTsoubUQpaORnEzqee-1C3MpNpp8TTh/exec";
+    const scriptBaseURL = "https://script.google.com/macros/s/AKfycbwo_qL9Zw8dUZ4-q4CjerKLzi5P2XtOVEXF3T8egeskVJUHMqJazzvsg2ZxZg40s-Xb/exec";
 
     if (codigo) {
       document.querySelector("#codigoView code").textContent = codigo;
@@ -127,6 +127,7 @@
           }
 
           const fechaMax = parsearFechaDMY(data.fecha_maxima);
+          alert(fechaMax);
           const hoy = new Date();
 
           if (data.estado === "Canjeado") {
