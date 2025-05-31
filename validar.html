@@ -126,7 +126,7 @@
             return;
           }
 
-          const fechaMax = new Date(data.fecha_maxima);
+          const fechaMax = parsearFechaDMY(data.fecha_maxima);
           const hoy = new Date();
 
           if (data.estado === "Canjeado") {
@@ -153,7 +153,14 @@
           document.getElementById("resultado").innerHTML = "<h3 style='color:red;'>Error al validar el código.</h3>";
         });
     });
-
+    
+    function parsearFechaDMY(fechaStr) {
+      const partes = fechaStr.split("/");
+      if (partes.length !== 3) return null;
+      const [dia, mes, anio] = partes;
+      return new Date(`${anio}-${mes}-${dia}`);
+    }
+    
     function canjear(codigo, comercioInvitado, codigoSeguridad) {
       const url = `${scriptBaseURL}?codigo=${encodeURIComponent(codigo)}&comercio_codigo=${encodeURIComponent(comercioInvitado)}&codigo_seguridad=${encodeURIComponent(codigoSeguridad)}&accion=canjear`;
       fetch(url)
