@@ -1,181 +1,405 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sorteo Cámara de Comercio</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-        }
-        h1 {
-            margin-bottom: 20px;
-        }
-        .readonly {
-            background-color: #e9e9e9;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            padding: 10px;
-            margin: 10px 0;
-            font-size: 1rem;
-            color: #555;
-        }
-        input[type="text"], input[type="tel"] {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            font-size: 1rem;
-        }
-        button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        #mensaje {
-            color: green;
-            font-weight: bold;
-            margin-top: 20px;
-        }
-        .telefono-group {
-            display: flex;
-            align-items: center;
-        }
-        .telefono-prefix {
-            padding: 10px;
-            background-color: #e9e9e9;
-            border: 1px solid #ccc;
-            border-radius: 5px 0 0 5px;
-            font-size: 1rem;
-        }
-        .telefono-input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-left: none;
-            border-radius: 0 5px 5px 0;
-            font-size: 1rem;
-        }
-        .error {
-            color: red;
-            font-size: 0.9rem;
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <h1>Sorteo CAME</h1>
-    <div id="comercio" class="readonly"></div>
-    <div id="fecha" class="readonly"></div>
-    
-    <form id="sorteoForm">
-        <input type="text" id="nombre" name="nombre" placeholder="Escribe tu nombre" required>
-        <input type="text" id="dni" name="dni" placeholder="Últimos 3 dígitos de DNI" maxlength="3" required>
-        
-        <div class="telefono-group">
-            <span class="telefono-prefix">+54</span>
-            <input type="tel" id="celular" name="celular" class="telefono-input" placeholder="1123456789" required>
-        </div>
-        <small>Ingresá el número sin el 9 inicial (ej: 1123456789)</small>
-        <div id="errorCelular" class="error"></div>
-        
-        <button type="submit">Enviar</button>
-    </form>
-    
-    <p id="mensaje"></p>
-</div>
-
-<script>
-    function getQueryParams() {
-        const params = {};
-        window.location.search.substring(1).split("&").forEach(function (pair) {
-            const [key, value] = pair.split("=");
-            if (key && value) {
-                params[decodeURIComponent(key)] = decodeURIComponent(value.replace(/\+/g, " "));
-            }
-        });
-        return params;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sorteo CAME + Descuento QR</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
     }
 
-    const params = getQueryParams();
-    document.getElementById('comercio').textContent = `Comercio: ${params.comercio || "No especificado"}`;
-    document.getElementById('fecha').textContent = `Fecha: ${params.fechaSorteo || "No especificada"}`;
+    .container {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 450px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
 
-    document.getElementById('sorteoForm').addEventListener('submit', function(event) {
-        event.preventDefault();
+    input[type="text"], input[type="tel"] {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
 
-        const nombre = document.getElementById('nombre').value.trim();
-        const dni = document.getElementById('dni').value.trim();
-        const celularSinPrefijo = document.getElementById('celular').value.trim();
-        const celularCompleto = `+54${celularSinPrefijo}`;
-        const errorCelular = document.getElementById('errorCelular');
-        errorCelular.textContent = '';
+    .input-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
 
-        // Validar DNI
-        if (dni.length !== 3 || isNaN(dni)) {
-            alert("Por favor ingresa los últimos 3 dígitos válidos del DNI.");
-            return;
+    .input-group span {
+      padding: 10px;
+      background-color: #e9e9e9;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+      white-space: nowrap;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .readonly {
+      background-color: #e9e9e9;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 1rem;
+      color: #555;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    #qr-container canvas {
+      margin-top: 20px;
+    }
+
+    .radio-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      width: 100%;
+      max-height: 350px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-right: 5px;
+      margin-bottom: 20px;
+    }
+
+    .radio-container {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      width: 100%;
+      padding-left: 10px;
+    }
+
+    .radio-container label {
+      display: flex;
+      align-items: center;
+      margin: 6px 0;
+      width: 100%;
+      font-size: 1rem;
+    }
+
+    .radio-container input[type="radio"] {
+      margin-right: 10px;
+      transform: translateX(4px);
+    }
+
+    #loadingMsg {
+      text-align: center;
+      color: #555;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      border-top-color: #4CAF50;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 10px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Sorteo CAME</h1>
+    <div id="participacion">
+      <div id="comercio" class="readonly"></div>
+      <div id="fecha" class="readonly"></div>
+      <form id="sorteoForm">
+        <input type="text" id="nombre" placeholder="Escribe tu nombre" required>
+        <input type="text" id="dni" placeholder="Últimos 3 dígitos de DNI" maxlength="3" required>
+        <div class="input-group">
+          <span>+54</span>
+          <input type="tel" id="celular" placeholder="Ej: 1123456789" pattern="^\d{10}$" required>
+        </div>
+        <small>Ingresá el número sin el 9 inicial (ej: 1123456789)</small>
+        <button type="submit">Participar</button>
+      </form>
+      <div id="errorParticipacion" class="hidden" style="color: red; margin-top: 10px;"></div>
+    </div>
+
+    <div id="postParticipacion" class="hidden" style="display: none; flex-direction: column; align-items: center; text-align: center;">
+      <p>¡Gracias por participar!</p>
+      <p id="mensajeDescuento" class="hidden">¡Te ganaste un descuento en alguno de los siguientes comercios!</p>
+      <div id="loadingMsg"><span class="spinner"></span> Cargando comercios...</div>
+      <div class="radio-wrapper" id="radioWrapper">
+        <form id="radioForm" class="radio-container"></form>
+      </div>
+      <button id="generarQR" class="hidden">Obtener descuento</button>
+    </div>
+
+    <div id="qr-container" class="hidden"></div>
+  </div>
+
+  <script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxRxyGDydxAsvztKqXHjBIDp0ysOT7LED703Y3KRO1xSdGqq69XPxnObL1mK3vpq2JXcQ/exec';
+    let celularGlobal = "";
+
+    const params = new URLSearchParams(window.location.search);
+    const comercioNombre = params.get("comercio") || "No especificado";
+    const fechaSorteo = params.get("fechaSorteo") || "No especificada";
+    document.getElementById('comercio').textContent = `Comercio: ${comercioNombre}`;
+    document.getElementById('fecha').textContent = `Fecha: ${fechaSorteo}`;
+
+    function generarHashCorto(input) {
+      const hash = Array.from(new TextEncoder().encode(input)).reduce((h, c) => (h << 5) - h + c, 0);
+      return 'DSCT-' + Math.abs(hash).toString(36).slice(0, 6).toUpperCase();
+    }
+
+    document.getElementById('sorteoForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      ocultarError(); // 🧹 Limpia cualquier mensaje previo
+      const botonParticipar = e.target.querySelector('button[type="submit"]');
+      botonParticipar.disabled = true;
+
+
+      const nombre = document.getElementById('nombre').value.trim();
+      const dni = document.getElementById('dni').value.trim();
+      const celular = document.getElementById('celular').value.trim();
+
+      if (!/^\d{10}$/.test(celular)) {
+        mostrarError("Por favor, ingresá un número válido de celular (10 dígitos, sin 0 ni 15).");
+        botonParticipar.disabled = false;
+        return;
+      }
+
+      celularGlobal = "+54" + celular;
+
+      const formData = new FormData();
+      formData.append('comercio', comercioNombre);
+      formData.append('fecha', fechaSorteo);
+      formData.append('nombre', nombre);
+      formData.append('dni', dni);
+      formData.append('celular', celularGlobal);
+
+      fetch(scriptURL, {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.text())
+      .then(text => {
+        let result;
+        try {
+          result = JSON.parse(text);
+        } catch (e) {
+          result = { success: true };
         }
 
-        // Validar celular (10 dígitos, sin 9 ni 0 inicial)
-        const celularValido = /^[1-9][0-9]{9}$/.test(celularSinPrefijo);
-        if (!celularValido) {
-            errorCelular.textContent = "Número inválido. Debe tener 10 dígitos sin el 9 ni 0 inicial.";
-            return;
+        if (result.success === false) {
+          mostrarError(result.error || "Ocurrió un error al participar.");
+          botonParticipar.disabled = false;
+          return;
         }
 
-        const submitButton = event.target.querySelector('button');
-        submitButton.disabled = true;
-
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbx0LaUd96gRtVNit9A7kC2WbJ5dh8KR2Kg0Ctg7RpGyadg-IAP0BAU3-7CdziF4uGH6lA/exec';
-
-        const formData = new FormData();
-        formData.append('comercio', params.comercio || "No especificado");
-        formData.append('fecha', params.fechaSorteo || "No especificada");
-        formData.append('nombre', nombre);
-        formData.append('dni', dni);
-        formData.append('celular', celularCompleto);
-
-        fetch(scriptURL, { method: 'POST', body: formData, mode: 'no-cors' })
-            .then(response => {
-                document.getElementById('mensaje').textContent = '¡Gracias por participar en el sorteo!';
-                document.getElementById('sorteoForm').reset();
-            })
-            .catch(error => {
-                document.getElementById('mensaje').textContent = 'Error al enviar el formulario. Inténtalo nuevamente.';
-            })
-            .finally(() => {
-                submitButton.disabled = false;
-            });
+        ocultarError();
+        document.getElementById('participacion').classList.add('hidden');
+        const post = document.getElementById('postParticipacion');
+        post.classList.remove('hidden');
+        post.style.display = 'flex';
+        cargarComercios();
+      })
+      .catch(error => {
+        mostrarError("Error al enviar los datos. Intentalo de nuevo.");
+        console.error(error);
+        botonParticipar.disabled = false;
+      });
     });
-</script>
 
+    function mostrarError(msg) {
+      const divError = document.getElementById('errorParticipacion');
+      divError.textContent = msg;
+      divError.classList.remove('hidden');
+    }
+
+    function ocultarError() {
+      const divError = document.getElementById('errorParticipacion');
+      divError.textContent = "";
+      divError.classList.add('hidden');
+    }
+
+    function cargarComercios() {
+      const mensaje = document.getElementById("mensajeDescuento");
+      const loading = document.getElementById("loadingMsg");
+      const form = document.getElementById("radioForm");
+      const wrapper = document.getElementById("radioWrapper");
+      const boton = document.getElementById("generarQR");
+
+      fetch(scriptURL + '?accion=comercios')
+        .then(res => res.json())
+        .then(data => {
+          loading.style.display = "none";
+          if (!data.comercios || data.comercios.length === 0) {
+            mensaje.style.display = "none";
+            return;
+          }
+          // ✅ Mostrar el mensaje sólo si hay comercios
+          mensaje.classList.remove("hidden");
+          data.comercios.forEach((com, index) => {
+            const label = document.createElement('label');
+            label.innerHTML = `<input type="radio" name="comercio" value="${com}" ${index === 0 ? 'checked' : ''}> ${com}`;
+            form.appendChild(label);
+          });
+          wrapper.classList.remove("hidden");
+          boton.classList.remove("hidden");
+        });
+    }
+
+    document.getElementById('generarQR').addEventListener('click', function() {
+      const seleccionado = document.querySelector('input[name="comercio"]:checked');
+      const comercioElegido = seleccionado ? seleccionado.value : "";
+      const timestamp = Date.now();
+      const raw = celularGlobal + timestamp;
+      const codigo = generarHashCorto(raw);
+
+      const nombreComercio = comercioElegido.split("(")[0].trim();
+      const descuento = comercioElegido.includes("(") ? comercioElegido.split("(")[1].replace(")", "").trim() : "";
+
+      const qrContent = `https://aleiva-l.github.io/descuento/validar.html?codigo=${codigo}&comercio_codigo=${encodeURIComponent(nombreComercio)}`;
+
+
+      const datos = new URLSearchParams();
+      datos.append("accion", "registro_descuento");
+      datos.append("codigo", codigo);
+      datos.append("comercio", nombreComercio);
+      datos.append("celular", celularGlobal);
+      datos.append("descuento", descuento);
+      const fechaValidez = '';
+      fetch(scriptURL, {
+        method: "POST",
+        body: datos
+      })
+      .then(res => res.json())
+      .then(result => {
+        const fechaValidez = result.fecha_validez || "sin fecha";   
+
+        let fechaMaxCanje = "Sin fecha";
+        if (result.fecha_validez) {
+          const fechaCompleta = result.fecha_validez.split("T")[0]; // "2025-06-01"
+          const partes = fechaCompleta.split("-");
+          const [anio, mes, dia] = fechaCompleta.split("-");     // ["2025", "06", "01"]
+          fechaMaxCanje = `${dia}/${mes}/${anio}`;       // "01/06/2025";
+        }
+
+        // ✅ Mover todo esto adentro del .then
+        document.body.innerHTML = '';
+        document.body.style.backgroundColor = '#f0f0f0';
+        document.body.style.display = 'flex';
+        document.body.style.justifyContent = 'center';
+        document.body.style.alignItems = 'center';
+        document.body.style.height = '100vh';
+        document.body.style.padding = '20px';
+        document.body.style.boxSizing = 'border-box';
+        document.body.style.margin = '0';   
+
+        const container = document.createElement('div');
+        container.style.backgroundColor = 'white';
+        container.style.padding = '20px';
+        container.style.borderRadius = '10px';
+        container.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.1)';
+        container.style.maxWidth = '400px';
+        container.style.width = '100%';
+        container.style.textAlign = 'center';
+        container.style.display = 'flex';
+        container.style.flexDirection = 'column';
+        container.style.alignItems = 'center';    
+
+        const texto = document.createElement('p');
+        texto.innerText = `Presentá este QR en el comercio "${nombreComercio}". Válido hasta ${fechaMaxCanje}.`;
+        texto.style.fontSize = '1.2rem';
+        texto.style.marginBottom = '20px';    
+
+        const canvasWrapper = document.createElement('div');
+        canvasWrapper.style.width = '100%';
+        canvasWrapper.style.maxWidth = '300px';
+        canvasWrapper.style.aspectRatio = '1';
+        canvasWrapper.style.display = 'flex';
+        canvasWrapper.style.justifyContent = 'center';
+        canvasWrapper.style.alignItems = 'center';    
+
+        QRCode.toCanvas(qrContent, { width: 300 }, function (err, canvas) {
+          if (!err) {
+            canvas.style.width = '100%';
+            canvas.style.height = 'auto';
+            canvasWrapper.appendChild(canvas);
+            container.appendChild(texto);
+            container.appendChild(canvasWrapper);   
+
+            const btnDescargar = document.createElement('button');
+            btnDescargar.innerText = 'Descargar QR';
+            btnDescargar.style.marginTop = '20px';
+            btnDescargar.style.backgroundColor = '#4CAF50';
+            btnDescargar.style.color = '#fff';
+            btnDescargar.style.border = 'none';
+            btnDescargar.style.borderRadius = '5px';
+            btnDescargar.style.padding = '10px 20px';
+            btnDescargar.style.cursor = 'pointer';
+            btnDescargar.style.fontSize = '1rem';
+            btnDescargar.onclick = () => {
+              const link = document.createElement('a');
+              link.download = `${codigo}.png`;
+              link.href = canvas.toDataURL("image/png");
+              link.click();
+            };    
+
+            const sugerencia = document.createElement('p');
+            sugerencia.innerText = 'Descargá el QR y enviátelo por WhatsApp como imagen.';
+            sugerencia.style.fontSize = '0.9rem';
+            sugerencia.style.marginTop = '10px';
+            sugerencia.style.color = '#555';    
+
+            container.appendChild(btnDescargar);
+            container.appendChild(sugerencia);    
+
+            document.body.appendChild(container);
+          }
+        });
+      });
+    });
+  </script>
 </body>
 </html>
