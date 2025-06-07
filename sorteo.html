@@ -348,8 +348,15 @@
         container.style.flexDirection = 'column';
         container.style.alignItems = 'center';    
 
-        const texto = document.createElement('p');
-        texto.innerText = `Presentá este QR en el comercio "${nombreComercio}". Válido hasta ${fechaMaxCanje}.`;
+        const texto = document.createElement('div');
+        texto.innerHTML = `
+            <p style="font-size: 1.2rem; margin-bottom: 10px;">
+            Presentá este QR en el comercio "<strong>${nombreComercio}</strong>". Válido hasta ${fechaMaxCanje}.
+            </p>
+            <p style="color: red; font-weight: bold; font-size: 1rem; margin-bottom: 20px;">
+            ¡Solo válido con efectivo o transferencia!
+            </p>`;
+
         texto.style.fontSize = '1.2rem';
         texto.style.marginBottom = '20px';    
 
