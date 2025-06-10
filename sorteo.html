@@ -290,6 +290,7 @@
     }
 
     document.getElementById('generarQR').addEventListener('click', function() {
+      this.disabled = true; // 🔒 Desactiva el botón para evitar múltiples clics
       const seleccionado = document.querySelector('input[name="comercio"]:checked');
       const comercioElegido = seleccionado ? seleccionado.value : "";
       const timestamp = Date.now();
