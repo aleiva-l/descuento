@@ -102,6 +102,7 @@
     }
 
     document.getElementById("validarBtn").addEventListener("click", () => {
+      this.disabled = true; // 🔒 Evita múltiples clics
       const codigoSeguridad = document.getElementById("codigoSeguridad").value.trim();
       if (!codigo || !comercioInvitado || !codigoSeguridad) {
         alert("Falta código o código de seguridad.");
@@ -137,7 +138,7 @@
             div.innerHTML = `
               <h3>Descuento: ${descuento}</h3>
               <p>📆 Válido hasta: ${fechaMaxCanje}</p>
-              <button onclick="canjear('${codigo}', '${comercioInvitado}', '${codigoSeguridad}')">🎟️ Canjear ahora</button>`;
+              <button onclick="this.disabled=true; canjear('${codigo}', '${comercioInvitado}', '${codigoSeguridad}')">🎟️ Canjear ahora</button>`;
           }
         })
         .catch(() => {
