@@ -138,7 +138,7 @@
             div.innerHTML = `
               <h3>Descuento: ${descuento}</h3>
               <p>📆 Válido hasta: ${fechaMaxCanje}</p>
-              <button onclick="this.disabled=true; canjear('${codigo}', '${comercioInvitado}', '${codigoSeguridad}')">🎟️ Canjear ahora</button>`;
+              <button onclick="this.disabled=true; this.remove(); canjear('${codigo}', '${comercioInvitado}', '${codigoSeguridad}')">🎟️ Canjear ahora</button>
           }
         })
         .catch(() => {
