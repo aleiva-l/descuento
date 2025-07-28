@@ -195,64 +195,68 @@
       return 'DSCT-' + Math.abs(hash).toString(36).slice(0, 6).toUpperCase();
     }
 
-    document.getElementById('sorteoForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      ocultarError(); // 🧹 Limpia cualquier mensaje previo
-      const botonParticipar = e.target.querySelector('button[type="submit"]');
-      botonParticipar.disabled = true;
+document.getElementById('sorteoForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  ocultarError();
 
+  const botonParticipar = e.target.querySelector('button[type="submit"]');
+  botonParticipar.disabled = true;
 
-      const nombre = document.getElementById('nombre').value.trim();
-      const dni = document.getElementById('dni').value.trim();
-      const celular = document.getElementById('celular').value.trim();
+  const nombre = document.getElementById('nombre').value.trim();
+  const dni = document.getElementById('dni').value.trim();
+  const celular = document.getElementById('celular').value.trim();
 
-      if (!/^\d{10}$/.test(celular)) {
-        mostrarError("Por favor, ingresá un número válido de celular (10 dígitos, sin 0 ni 15).");
-        botonParticipar.disabled = false;
-        return;
-      }
+  if (!/^\d{10}$/.test(celular)) {
+    mostrarError("Por favor, ingresá un número válido de celular (10 dígitos, sin 0 ni 15).");
+    botonParticipar.disabled = false;
+    return;
+  }
 
-      celularGlobal = "+54" + celular;
+  celularGlobal = "+54" + celular;
 
-      const formData = new FormData();
-      formData.append('comercio', comercioNombre);
-      formData.append('fecha', fechaSorteo);
-      formData.append('nombre', nombre);
-      formData.append('dni', dni);
-      formData.append('celular', celularGlobal);
+  const datos = new URLSearchParams();
+  datos.append('comercio', comercioNombre);
+  datos.append('fecha', fechaSorteo);
+  datos.append('nombre', nombre);
+  datos.append('dni', dni);
+  datos.append('celular', celularGlobal);
 
-      fetch(scriptURL, {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.text())
-      .then(text => {
-        let result;
-        try {
-          result = JSON.parse(text);
-        } catch (e) {
-          result = { success: true };
-        }
+  fetch(scriptURL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: datos.toString()
+  })
+  .then(response => response.text())
+  .then(text => {
+    let result;
+    try {
+      result = JSON.parse(text);
+    } catch (e) {
+      result = { success: true };
+    }
 
-        if (result.success === false) {
-          mostrarError(result.error || "Ocurrió un error al participar.");
-          botonParticipar.disabled = false;
-          return;
-        }
+    if (result.success === false) {
+      mostrarError(result.error || "Ocurrió un error al participar.");
+      botonParticipar.disabled = false;
+      return;
+    }
 
-        ocultarError();
-        document.getElementById('participacion').classList.add('hidden');
-        const post = document.getElementById('postParticipacion');
-        post.classList.remove('hidden');
-        post.style.display = 'flex';
-        cargarComercios();
-      })
-      .catch(error => {
-        mostrarError("Error al enviar los datos. Intentalo de nuevo.");
-        console.error(error);
-        botonParticipar.disabled = false;
-      });
-    });
+    ocultarError();
+    document.getElementById('participacion').classList.add('hidden');
+    const post = document.getElementById('postParticipacion');
+    post.classList.remove('hidden');
+    post.style.display = 'flex';
+    cargarComercios();
+  })
+  .catch(error => {
+    mostrarError("Error al enviar los datos. Intentalo de nuevo.");
+    console.error(error);
+    botonParticipar.disabled = false;
+  });
+});
+
 
     function mostrarError(msg) {
       const divError = document.getElementById('errorParticipacion');
