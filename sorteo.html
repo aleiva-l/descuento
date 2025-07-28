@@ -136,7 +136,11 @@
       animation: spin 1s ease-in-out infinite;
       margin-right: 10px;
     }
-
+    .titulo-img {
+      max-width: 100%;
+      margin-bottom: 10px;
+    }
+    
     @keyframes spin {
       to {
         transform: rotate(360deg);
@@ -146,7 +150,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>Sorteo CAME</h1>
+    <img src="img/titulo.png" alt="Sorteo Día del Niño" class="titulo-img" />
     <div id="participacion">
       <div id="comercio" class="readonly"></div>
       <div id="fecha" class="readonly"></div>
