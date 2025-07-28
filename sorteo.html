@@ -6,15 +6,17 @@
   <title>Sorteo CAME + Descuento QR</title>
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
   <style>
-     body {
-       font-family: Arial, sans-serif;
-       background-color: #f0f0f0;
-       margin: 0;
-       padding: 20px 0;
-       display: block;
-     }
-
-
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 10px 0 30px; /* menos espacio arriba */
+      display: flex;
+      justify-content: center;
+      align-items: flex-start; /* contenido alineado arriba */
+      min-height: 100vh; /* ocupa toda la altura si es necesario */
+      box-sizing: border-box;
+    }
     .container {
       background-color: white;
       padding: 20px;
