@@ -222,9 +222,10 @@ document.getElementById('sorteoForm').addEventListener('submit', function(e) {
   datos.append('celular', celularGlobal);
 
   fetch(scriptURL, {
-    method: 'POST',
+    redirect: "follow",
+    method: "POST",
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded'
+      "Content-Type": "application/x-www-form-urlencoded"
     },
     body: datos.toString()
   })
