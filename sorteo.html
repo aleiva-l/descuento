@@ -10,13 +10,13 @@
       font-family: Arial, sans-serif;
       background-color: #f0f0f0;
       margin: 0;
-      padding: 10px 0 30px; /* menos espacio arriba */
+      padding: 20px;
       display: flex;
       justify-content: center;
-      align-items: flex-start; /* contenido alineado arriba */
-      min-height: 100vh; /* ocupa toda la altura si es necesario */
-      box-sizing: border-box;
+      align-items: center;
+      height: 100vh;
     }
+
     .container {
       background-color: white;
       padding: 20px;
@@ -136,11 +136,7 @@
       animation: spin 1s ease-in-out infinite;
       margin-right: 10px;
     }
-    .titulo-img {
-      max-width: 100%;
-      margin-bottom: 10px;
-    }
-    
+
     @keyframes spin {
       to {
         transform: rotate(360deg);
@@ -150,7 +146,7 @@
 </head>
 <body>
   <div class="container">
-    <img src="img/titulo.png" alt="Sorteo Día del Niño" class="titulo-img" />
+    <h1>Sorteo CAME</h1>
     <div id="participacion">
       <div id="comercio" class="readonly"></div>
       <div id="fecha" class="readonly"></div>
@@ -181,7 +177,7 @@
   </div>
 
   <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbwID53_bjKXap50lW4CxFymNeDtnaZu_q5-NZnsVBgeRA53WVQFnOXpO6p-RC8H_IPgRQ/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxQWOYGXPi3qr6dndOZQc0xXA5xDy2j4zoERSnMehS5JaE5a4zsN9oFTdXMSo2NE6LBUg/exec';
     let celularGlobal = "";
 
     const params = new URLSearchParams(window.location.search);
@@ -195,63 +191,64 @@
       return 'DSCT-' + Math.abs(hash).toString(36).slice(0, 6).toUpperCase();
     }
 
-document.getElementById('sorteoForm').addEventListener('submit', function(e) {
-  e.preventDefault();
-  ocultarError();
-  const botonParticipar = e.target.querySelector('button[type="submit"]');
-  botonParticipar.disabled = true;
-
-  const nombre = document.getElementById('nombre').value.trim();
-  const dni = document.getElementById('dni').value.trim();
-  const celular = document.getElementById('celular').value.trim();
-
-  if (!/^\d{10}$/.test(celular)) {
-    mostrarError("Por favor, ingresá un número válido de celular (10 dígitos, sin 0 ni 15).");
-    botonParticipar.disabled = false;
-    return;
-  }
-
-  celularGlobal = "+54" + celular;
-
-  const datos = new URLSearchParams();
-  datos.append("accion", "registro_descuento");
-  datos.append("comercio", comercioNombre);
-  datos.append("fecha", fechaSorteo);
-  datos.append("nombre", nombre);
-  datos.append("dni", dni);
-  datos.append("celular", celularGlobal);
-
-  fetch(scriptURL, {
-    redirect: "follow",
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
-    body: datos.toString()
-  })
-  .then(response => response.json())
-  .then(result => {
-    if (result.success === false) {
-      mostrarError(result.error || "Ocurrió un error al participar.");
-      botonParticipar.disabled = false;
-      return;
-    }
-
-    ocultarError();
-    document.getElementById('participacion').classList.add('hidden');
-    const post = document.getElementById('postParticipacion');
-    post.classList.remove('hidden');
-    post.style.display = 'flex';
-    cargarComercios();
-  })
-  .catch(error => {
-    mostrarError("Error al enviar los datos. Intentalo de nuevo.");
-    console.error(error);
-    botonParticipar.disabled = false;
-  });
-}); // ⬅️ ¡Esta llave y paréntesis final son fundamentales!
+    document.getElementById('sorteoForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      ocultarError(); // 🧹 Limpia cualquier mensaje previo
+      const botonParticipar = e.target.querySelector('button[type="submit"]');
+      botonParticipar.disabled = true;
 
 
+      const nombre = document.getElementById('nombre').value.trim();
+      const dni = document.getElementById('dni').value.trim();
+      const celular = document.getElementById('celular').value.trim();
+
+      if (!/^\d{10}$/.test(celular)) {
+        mostrarError("Por favor, ingresá un número válido de celular (10 dígitos, sin 0 ni 15).");
+        botonParticipar.disabled = false;
+        return;
+      }
+
+      celularGlobal = "+54" + celular;
+
+      const formData = new FormData();
+      formData.append('comercio', comercioNombre);
+      formData.append('fecha', fechaSorteo);
+      formData.append('nombre', nombre);
+      formData.append('dni', dni);
+      formData.append('celular', celularGlobal);
+
+      fetch(scriptURL, {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.text())
+      .then(text => {
+        let result;
+        try {
+          result = JSON.parse(text);
+        } catch (e) {
+          result = { success: true };
+        }
+
+        if (result.success === false) {
+          mostrarError(result.error || "Ocurrió un error al participar.");
+          botonParticipar.disabled = false;
+          return;
+        }
+
+        ocultarError();
+        document.getElementById('participacion').classList.add('hidden');
+        const post = document.getElementById('postParticipacion');
+        post.classList.remove('hidden');
+        post.style.display = 'flex';
+        cargarComercios();
+      })
+      .catch(error => {
+        mostrarError("Error al enviar los datos. Intentalo de nuevo.");
+        console.error(error);
+        botonParticipar.disabled = false;
+      });
+    });
 
     function mostrarError(msg) {
       const divError = document.getElementById('errorParticipacion');
