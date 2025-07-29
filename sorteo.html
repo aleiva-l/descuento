@@ -181,7 +181,7 @@
   </div>
 
   <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbw39QdwADlshHdICWzFZH-PQX0MtdFcF0hZFz0jRgMkOLRTANRr1jX8LlDn15HA7UpFAw/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzZ4ilBux-J3GnPIemOv9_un4_L7DrRYZeepmQFzFo-H8y-ZQfFypTk8uJrC9XFmjJpLA/exec';
     let celularGlobal = "";
 
     const params = new URLSearchParams(window.location.search);
@@ -221,41 +221,33 @@ document.getElementById('sorteoForm').addEventListener('submit', function(e) {
   datos.append('dni', dni);
   datos.append('celular', celularGlobal);
 
-  fetch(scriptURL, {
-    redirect: "follow",
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
-    body: datos.toString()
-  })
-  .then(response => response.text())
-  .then(text => {
-    let result;
-    try {
-      result = JSON.parse(text);
-    } catch (e) {
-      result = { success: true };
-    }
-
-    if (result.success === false) {
-      mostrarError(result.error || "Ocurrió un error al participar.");
-      botonParticipar.disabled = false;
-      return;
-    }
-
-    ocultarError();
-    document.getElementById('participacion').classList.add('hidden');
-    const post = document.getElementById('postParticipacion');
-    post.classList.remove('hidden');
-    post.style.display = 'flex';
-    cargarComercios();
-  })
-  .catch(error => {
-    mostrarError("Error al enviar los datos. Intentalo de nuevo.");
-    console.error(error);
+fetch(scriptURL, {
+  redirect: "follow",
+  method: "POST",
+  headers: {
+    "Content-Type": "application/x-www-form-urlencoded"
+  },
+  body: datos.toString()
+})
+.then(response => response.json())
+.then(result => {
+  if (result.success === false) {
+    mostrarError(result.error || "Ocurrió un error al participar.");
     botonParticipar.disabled = false;
-  });
+    return;
+  }
+
+  ocultarError();
+  document.getElementById('participacion').classList.add('hidden');
+  const post = document.getElementById('postParticipacion');
+  post.classList.remove('hidden');
+  post.style.display = 'flex';
+  cargarComercios();
+})
+.catch(error => {
+  mostrarError("Error al enviar los datos. Intentalo de nuevo.");
+  console.error(error);
+  botonParticipar.disabled = false;
 });
 
 
