@@ -10,11 +10,11 @@
       font-family: Arial, sans-serif;
       background-color: #f0f0f0;
       margin: 0;
-      padding: 20px 10px 10px 10px; /* menos padding arriba */
+      padding: 20px 10px 10px 10px;
       display: flex;
       justify-content: center;
-      align-items: flex-start; /* antes era center */
-      min-height: 100vh; /* más flexible que height: 100vh */
+      align-items: flex-start;
+      min-height: 100vh;
       box-sizing: border-box;
     }
 
@@ -115,10 +115,11 @@
       margin: 6px 0;
       width: 100%;
       font-size: 1rem;
+      gap: 6px;
     }
 
     .radio-container input[type="radio"] {
-      margin-right: 10px;
+      margin-right: 4px;
       transform: translateX(4px);
     }
 
@@ -137,11 +138,22 @@
       animation: spin 1s ease-in-out infinite;
       margin-right: 10px;
     }
-   .titulo-img {
+
+    .titulo-img {
       max-width: 100%;
       height: auto;
       margin-bottom: 10px;
     }
+
+    .radio-container a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+
+    .radio-container a:hover {
+      text-decoration: underline;
+    }
+
     @keyframes spin {
       to {
         transform: rotate(360deg);
@@ -182,7 +194,7 @@
   </div>
 
   <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbzeIRZpLobSXHyg8aAjPc7DwFtwx4BfPT8CCN13_DIjD-XW8xfMlPmaHS3GvVFgt6DfAQ/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyksMJkkDwZR1gGdWTUH4uwX9yrLJlEizsC5jyDLQ8kiwSlPwmikmuWCWShqoMRIVe_Pw/exec';
     let celularGlobal = "";
 
     const params = new URLSearchParams(window.location.search);
@@ -192,16 +204,16 @@
     document.getElementById('fecha').textContent = `Fecha: ${fechaSorteo}`;
 
     function generarHashCorto(input) {
-      const hash = Array.from(new TextEncoder().encode(input)).reduce((h, c) => (h << 5) - h + c, 0);
+      const hash = Array.from(new TextEncoder().encode(input))
+        .reduce((h, c) => (h << 5) - h + c, 0);
       return 'DSCT-' + Math.abs(hash).toString(36).slice(0, 6).toUpperCase();
     }
 
     document.getElementById('sorteoForm').addEventListener('submit', function(e) {
       e.preventDefault();
-      ocultarError(); // 🧹 Limpia cualquier mensaje previo
+      ocultarError();
       const botonParticipar = e.target.querySelector('button[type="submit"]');
       botonParticipar.disabled = true;
-
 
       const nombre = document.getElementById('nombre').value.trim();
       const dni = document.getElementById('dni').value.trim();
@@ -278,35 +290,56 @@
         .then(res => res.json())
         .then(data => {
           loading.style.display = "none";
+
           if (!data.comercios || data.comercios.length === 0) {
             mensaje.style.display = "none";
             return;
           }
-          // ✅ Mostrar el mensaje sólo si hay comercios
+
           mensaje.classList.remove("hidden");
+
           data.comercios.forEach((com, index) => {
             const label = document.createElement('label');
-            label.innerHTML = `<input type="radio" name="comercio" value="${com}" ${index === 0 ? 'checked' : ''}> ${com}`;
+
+            let nombreVisible;
+            if (com.link) {
+              nombreVisible = `<a href="${com.link}" target="_blank" rel="noopener noreferrer">${com.nombre}</a> (${com.descripcion})`;
+            } else {
+              nombreVisible = `${com.nombre} (${com.descripcion})`;
+            }
+
+            label.innerHTML = `
+              <input type="radio" 
+                     name="comercio" 
+                     value="${com.nombre}"
+                     ${index === 0 ? 'checked' : ''}>
+              ${nombreVisible}
+            `;
+
             form.appendChild(label);
           });
+
           wrapper.classList.remove("hidden");
           boton.classList.remove("hidden");
+        })
+        .catch(err => {
+          console.error("Error cargando comercios:", err);
+          loading.textContent = "No se pudieron cargar los comercios.";
         });
     }
 
     document.getElementById('generarQR').addEventListener('click', function() {
-      this.disabled = true; // 🔒 Desactiva el botón para evitar múltiples clics
+      this.disabled = true;
       const seleccionado = document.querySelector('input[name="comercio"]:checked');
       const comercioElegido = seleccionado ? seleccionado.value : "";
       const timestamp = Date.now();
       const raw = celularGlobal + timestamp;
       const codigo = generarHashCorto(raw);
 
-      const nombreComercio = comercioElegido.split("(")[0].trim();
-      const descuento = comercioElegido.includes("(") ? comercioElegido.split("(")[1].replace(")", "").trim() : "";
+      const nombreComercio = comercioElegido;
+      const descuento = ""; // opcional, el backend usa el descuento de la hoja Comercios
 
       const qrContent = `https://aleiva-l.github.io/descuento/validar.html?codigo=${codigo}&comercio_codigo=${encodeURIComponent(nombreComercio)}`;
-
 
       const datos = new URLSearchParams();
       datos.append("accion", "registro_descuento");
@@ -314,24 +347,20 @@
       datos.append("comercio", nombreComercio);
       datos.append("celular", celularGlobal);
       datos.append("descuento", descuento);
-      const fechaValidez = '';
+
       fetch(scriptURL, {
         method: "POST",
         body: datos
       })
       .then(res => res.json())
       .then(result => {
-        const fechaValidez = result.fecha_validez || "sin fecha";   
-
         let fechaMaxCanje = "Sin fecha";
         if (result.fecha_validez) {
           const fechaCompleta = result.fecha_validez.split("T")[0]; // "2025-06-01"
-          const partes = fechaCompleta.split("-");
-          const [anio, mes, dia] = fechaCompleta.split("-");     // ["2025", "06", "01"]
-          fechaMaxCanje = `${dia}/${mes}/${anio}`;       // "01/06/2025";
+          const [anio, mes, dia] = fechaCompleta.split("-");
+          fechaMaxCanje = `${dia}/${mes}/${anio}`;
         }
 
-        // ✅ Mover todo esto adentro del .then
         document.body.innerHTML = '';
         document.body.style.backgroundColor = '#f0f0f0';
         document.body.style.display = 'flex';
@@ -340,7 +369,7 @@
         document.body.style.height = '100vh';
         document.body.style.padding = '20px';
         document.body.style.boxSizing = 'border-box';
-        document.body.style.margin = '0';   
+        document.body.style.margin = '0';
 
         const container = document.createElement('div');
         container.style.backgroundColor = 'white';
@@ -352,22 +381,22 @@
         container.style.textAlign = 'center';
         container.style.display = 'flex';
         container.style.flexDirection = 'column';
-        container.style.alignItems = 'center';    
+        container.style.alignItems = 'center';
 
         const texto = document.createElement('div');
         texto.innerHTML = `
-            <p style="font-size: 1.2rem; margin-bottom: 10px;">
+          <p style="font-size: 1.2rem; margin-bottom: 10px;">
             Presentá este QR en el comercio "<strong>${nombreComercio}</strong>". Válido hasta ${fechaMaxCanje}.
-            </p>
-            <p style="color: red; font-weight: bold; font-size: 1rem; margin-bottom: 5px;">
-              Sujeto a condiciones del comercio
-            </p>
-            <p style="color: red; font-weight: bold; font-size: 1rem; margin-bottom: 20px;">
-              ¡Solo válido con efectivo o transferencia!
-            </p>`;
+          </p>
+          <p style="color: red; font-weight: bold; font-size: 1rem; margin-bottom: 5px;">
+            Sujeto a condiciones del comercio
+          </p>
+          <p style="color: red; font-weight: bold; font-size: 1rem; margin-bottom: 20px;">
+            ¡Solo válido con efectivo o transferencia!
+          </p>`;
 
         texto.style.fontSize = '1.2rem';
-        texto.style.marginBottom = '20px';    
+        texto.style.marginBottom = '20px';
 
         const canvasWrapper = document.createElement('div');
         canvasWrapper.style.width = '100%';
@@ -375,7 +404,7 @@
         canvasWrapper.style.aspectRatio = '1';
         canvasWrapper.style.display = 'flex';
         canvasWrapper.style.justifyContent = 'center';
-        canvasWrapper.style.alignItems = 'center';    
+        canvasWrapper.style.alignItems = 'center';
 
         QRCode.toCanvas(qrContent, { width: 300 }, function (err, canvas) {
           if (!err) {
@@ -383,7 +412,7 @@
             canvas.style.height = 'auto';
             canvasWrapper.appendChild(canvas);
             container.appendChild(texto);
-            container.appendChild(canvasWrapper);   
+            container.appendChild(canvasWrapper);
 
             const btnDescargar = document.createElement('button');
             btnDescargar.innerText = 'Descargar QR';
@@ -400,31 +429,25 @@
               link.download = `${codigo}.png`;
               link.href = canvas.toDataURL("image/png");
               link.click();
-            };    
+            };
 
             const sugerencia = document.createElement('p');
             sugerencia.innerText = 'Descargá el QR y enviátelo por WhatsApp como imagen.';
             sugerencia.style.fontSize = '0.9rem';
             sugerencia.style.marginTop = '10px';
-            sugerencia.style.color = '#555';    
+            sugerencia.style.color = '#555';
 
             container.appendChild(btnDescargar);
-            container.appendChild(sugerencia);    
+            container.appendChild(sugerencia);
 
             document.body.appendChild(container);
           }
         });
+      })
+      .catch(err => {
+        console.error("Error registrando descuento:", err);
       });
     });
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
