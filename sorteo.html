@@ -81,7 +81,7 @@
       gap: 8px;
     }
 
-    /* Spinner pequeño dentro del botón Participar */
+    /* Spinner pequeño dentro del botón */
     .btn-spinner {
       display: inline-block;
       width: 16px;
@@ -230,17 +230,16 @@
       return 'DSCT-' + Math.abs(hash).toString(36).slice(0, 6).toUpperCase();
     }
 
+    // --- PARTICIPAR con spinner ---
     document.getElementById('sorteoForm').addEventListener('submit', function(e) {
       e.preventDefault();
       ocultarError();
       const botonParticipar = document.getElementById('btnParticipar');
 
-      // guardar texto original una sola vez
       if (!botonParticipar.dataset.originalText) {
         botonParticipar.dataset.originalText = botonParticipar.textContent;
       }
 
-      // poner spinner
       botonParticipar.disabled = true;
       botonParticipar.classList.add('processing');
       botonParticipar.innerHTML = `<span class="btn-spinner"></span> Procesando...`;
@@ -288,7 +287,6 @@
         const post = document.getElementById('postParticipacion');
         post.classList.remove('hidden');
         post.style.display = 'flex';
-        // ya no necesitamos el botón "Participar", no se resetea aquí
         cargarComercios();
       })
       .catch(error => {
@@ -366,8 +364,18 @@
         });
     }
 
+    // --- OBTENER DESCUENTO con spinner ---
     document.getElementById('generarQR').addEventListener('click', function() {
-      this.disabled = true;
+      const btn = this;
+
+      if (!btn.dataset.originalText) {
+        btn.dataset.originalText = btn.textContent;
+      }
+
+      btn.disabled = true;
+      btn.classList.add('processing');
+      btn.innerHTML = `<span class="btn-spinner"></span> Procesando...`;
+
       const seleccionado = document.querySelector('input[name="comercio"]:checked');
       const comercioElegido = seleccionado ? seleccionado.value : "";
       const timestamp = Date.now();
@@ -399,6 +407,7 @@
           fechaMaxCanje = `${dia}/${mes}/${anio}`;
         }
 
+        // A partir de acá cambiás toda la vista, así que no hace falta restaurar el botón
         document.body.innerHTML = '';
         document.body.style.backgroundColor = '#f0f0f0';
         document.body.style.display = 'flex';
@@ -484,6 +493,10 @@
       })
       .catch(err => {
         console.error("Error registrando descuento:", err);
+        // Si falla, restauramos el botón
+        btn.disabled = false;
+        btn.classList.remove('processing');
+        btn.textContent = btn.dataset.originalText || 'Obtener descuento';
       });
     });
   </script>
