@@ -201,7 +201,7 @@
       <div id="errorParticipacion" class="hidden" style="color: red; margin-top: 10px;"></div>
     </div>
 
-    <div id="postParticipacion" class="hidden" style="display: none; flex-direction: column; align-items: center; text-align: center;">
+    <div id="postParticipacion" class="hidden" style="display: none; flex-direction: column; align-items: center; text-align: center%;">
       <p>¡Gracias por participar!</p>
       <p id="mensajeDescuento" class="hidden">¡Te ganaste un descuento en alguno de los siguientes comercios!</p>
       <div id="loadingMsg"><span class="spinner"></span> Cargando comercios...</div>
@@ -407,7 +407,6 @@
           fechaMaxCanje = `${dia}/${mes}/${anio}`;
         }
 
-        // A partir de acá cambiás toda la vista, así que no hace falta restaurar el botón
         document.body.innerHTML = '';
         document.body.style.backgroundColor = '#f0f0f0';
         document.body.style.display = 'flex';
@@ -493,7 +492,6 @@
       })
       .catch(err => {
         console.error("Error registrando descuento:", err);
-        // Si falla, restauramos el botón
         btn.disabled = false;
         btn.classList.remove('processing');
         btn.textContent = btn.dataset.originalText || 'Obtener descuento';
