@@ -6,213 +6,437 @@
   <title>Sorteo CAME + Descuento QR</title>
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
   <style>
+    :root {
+      --bg-1: #f7efe4;
+      --bg-2: #fff8ef;
+      --card: rgba(255, 255, 255, 0.88);
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #f97316;
+      --primary-dark: #ea580c;
+      --primary-soft: #ffedd5;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --border: rgba(31, 41, 55, 0.12);
+      --shadow: 0 24px 70px rgba(31, 41, 55, 0.18);
+      --radius: 28px;
+    }
+
+    * { box-sizing: border-box; }
+
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f0f0f0;
       margin: 0;
-      padding: 20px 10px 10px 10px;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(249, 115, 22, 0.22), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(22, 163, 74, 0.16), transparent 32%),
+        linear-gradient(135deg, var(--bg-1), var(--bg-2));
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      min-height: 100vh;
-      box-sizing: border-box;
+      padding: 24px 14px;
+    }
+
+    .page-shell {
+      width: 100%;
+      max-width: 480px;
+      position: relative;
     }
 
     .container {
-      background-color: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      position: relative;
+      overflow: hidden;
       width: 100%;
-      max-width: 450px;
+      padding: 26px 22px 22px;
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      border-radius: var(--radius);
+      background: var(--card);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
       text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
 
+    .container::before {
+      content: "";
+      position: absolute;
+      inset: -40px;
+      background: url("img/diapadre.jpeg") center 34px / 82% auto no-repeat;
+      opacity: 0.08;
+      filter: saturate(0.95);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.70), rgba(255,255,255,0.92));
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container > * {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+    }
+
+    .titulo-img {
+      width: min(220px, 74%);
+      height: auto;
+      margin: 2px auto 10px;
+      border-radius: 22px;
+      box-shadow: 0 14px 36px rgba(31, 41, 55, 0.14);
+      opacity: 0.95;
+    }
+
+    .headline {
+      margin: 8px 0 4px;
+      font-size: clamp(1.55rem, 7vw, 2.15rem);
+      line-height: 1.05;
+      font-weight: 850;
+      letter-spacing: -0.04em;
+    }
+
+    .subtitle {
+      margin: 0 auto 18px;
+      max-width: 340px;
+      color: var(--muted);
+      font-size: 0.98rem;
+      line-height: 1.45;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin: 14px 0 18px;
+    }
+
+    .readonly {
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.68);
+      color: #374151;
+      font-size: 0.95rem;
+      text-align: left;
+    }
+
+    form { margin: 0; }
+
+    .field {
+      margin-bottom: 12px;
+      text-align: left;
+    }
+
+    .field label {
+      display: block;
+      margin: 0 0 6px 4px;
+      font-size: 0.83rem;
+      color: #4b5563;
+      font-weight: 700;
+    }
+
     input[type="text"], input[type="tel"] {
       width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 5px;
-      border: 1px solid #ccc;
+      padding: 14px 14px;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.86);
+      color: var(--text);
       font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    input:focus {
+      border-color: rgba(249, 115, 22, 0.72);
+      box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.14);
+      transform: translateY(-1px);
     }
 
     .input-group {
-      display: flex;
+      display: grid;
+      grid-template-columns: auto 1fr;
       align-items: center;
-      gap: 5px;
+      gap: 8px;
     }
 
     .input-group span {
-      padding: 10px;
-      background-color: #e9e9e9;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      font-size: 1rem;
+      padding: 14px 13px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--primary-soft);
+      color: #9a3412;
+      font-weight: 800;
       white-space: nowrap;
+    }
+
+    small {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      text-align: left;
     }
 
     button {
       width: 100%;
-      padding: 10px;
-      margin-top: 20px;
-      background-color: #4CAF50;
-      color: white;
+      min-height: 50px;
+      padding: 13px 16px;
+      margin-top: 12px;
       border: none;
-      border-radius: 5px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
       font-size: 1rem;
+      font-weight: 850;
       cursor: pointer;
+      box-shadow: 0 14px 28px rgba(249, 115, 22, 0.28);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
     }
 
-    button:hover {
-      background-color: #45a049;
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 36px rgba(249, 115, 22, 0.34);
     }
 
-    /* Botón en estado de procesamiento */
+    button:disabled { opacity: 0.75; cursor: not-allowed; }
+
     button.processing {
-      opacity: 0.8;
-      cursor: not-allowed;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
     }
 
-    /* Spinner pequeño dentro del botón */
-    .btn-spinner {
+    .btn-spinner, .spinner {
       display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(255, 255, 255, 0.6);
-      border-top-color: #ffffff;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
 
-    .readonly {
-      background-color: #e9e9e9;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      padding: 10px;
-      margin: 10px 0;
-      font-size: 1rem;
-      color: #555;
+    .btn-spinner {
+      width: 17px;
+      height: 17px;
+      border: 2px solid rgba(255, 255, 255, 0.55);
+      border-top-color: #fff;
     }
 
-    .hidden {
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(249, 115, 22, 0.18);
+      border-top-color: var(--primary);
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    .hidden { display: none !important; }
+
+    .error-box {
+      color: var(--danger);
+      margin-top: 12px;
+      padding: 11px 13px;
+      border-radius: 16px;
+      background: rgba(220, 38, 38, 0.08);
+      font-size: 0.92rem;
+      text-align: left;
+    }
+
+    #postParticipacion {
       display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
     }
 
-    #qr-container canvas {
-      margin-top: 20px;
+    .success-pill {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      width: auto;
+      margin: 4px auto 10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(22, 163, 74, 0.1);
+      color: #166534;
+      font-weight: 850;
+      font-size: 0.9rem;
+    }
+
+    #mensajeDescuento {
+      margin: 4px 0 14px;
+      color: #374151;
+      font-size: 1rem;
+      line-height: 1.4;
+    }
+
+    #loadingMsg {
+      margin: 12px 0;
+      color: var(--muted);
     }
 
     .radio-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      width: 100%;
-      max-height: 350px;
+      max-height: 360px;
       overflow-y: auto;
       overflow-x: hidden;
-      padding-right: 5px;
-      margin-bottom: 20px;
+      padding: 4px 3px 4px 0;
+      margin-bottom: 14px;
     }
 
     .radio-container {
       display: flex;
       flex-direction: column;
-      align-items: flex-start;
-      width: 100%;
-      padding-left: 10px;
+      gap: 10px;
     }
 
     .radio-container label {
       display: flex;
-      align-items: center;
-      margin: 6px 0;
+      align-items: flex-start;
+      gap: 10px;
       width: 100%;
-      font-size: 1rem;
-      gap: 6px;
+      padding: 13px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.72);
+      text-align: left;
+      line-height: 1.35;
     }
 
     .radio-container input[type="radio"] {
-      margin-right: 4px;
-      transform: translateX(4px);
-    }
-
-    #loadingMsg {
-      text-align: center;
-      color: #555;
-    }
-
-    .spinner {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(0, 0, 0, 0.1);
-      border-radius: 50%;
-      border-top-color: #4CAF50;
-      animation: spin 1s ease-in-out infinite;
-      margin-right: 10px;
-    }
-
-    .titulo-img {
-      max-width: 100%;
-      height: auto;
-      margin-bottom: 10px;
+      margin-top: 2px;
+      accent-color: var(--primary);
+      transform: scale(1.15);
     }
 
     .radio-container a {
-      color: #0066cc;
+      color: var(--primary-dark);
+      font-weight: 800;
       text-decoration: none;
     }
 
-    .radio-container a:hover {
-      text-decoration: underline;
+    .radio-container a:hover { text-decoration: underline; }
+
+    .qr-card {
+      position: relative;
+      overflow: hidden;
+      width: min(100%, 420px);
+      margin: auto;
+      padding: 24px;
+      border-radius: 28px;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: var(--shadow);
+      text-align: center;
     }
 
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
+    .qr-card::before {
+      content: "";
+      position: absolute;
+      inset: -30px;
+      background: url("img/diapadre.jpeg") center / 80% auto no-repeat;
+      opacity: 0.07;
+      pointer-events: none;
+    }
+
+    .qr-card > * { position: relative; z-index: 1; }
+
+    .qr-title {
+      margin: 0 0 10px;
+      font-size: 1.35rem;
+      line-height: 1.2;
+      font-weight: 850;
+    }
+
+    .qr-warning {
+      margin: 8px 0;
+      color: var(--danger);
+      font-weight: 850;
+    }
+
+    .qr-box {
+      width: 100%;
+      max-width: 300px;
+      aspect-ratio: 1;
+      margin: 18px auto 0;
+      padding: 12px;
+      border-radius: 24px;
+      background: white;
+      box-shadow: inset 0 0 0 1px var(--border), 0 14px 30px rgba(31,41,55,0.12);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 390px) {
+      body { padding: 14px 10px; }
+      .container { padding: 22px 16px 18px; border-radius: 24px; }
+      .readonly, input[type="text"], input[type="tel"], .input-group span, button { border-radius: 16px; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <img src="img/diapadre.jpeg" alt="Título" class="titulo-img">
-    <div id="participacion">
-      <div id="comercio" class="readonly"></div>
-      <div id="fecha" class="readonly"></div>
-      <form id="sorteoForm">
-        <input type="text" id="nombre" placeholder="Escribe tu nombre" required>
-        <input type="text" id="dni" placeholder="Últimos 3 dígitos de DNI" maxlength="3" required>
-        <div class="input-group">
-          <span>+54</span>
-          <input type="tel" id="celular" placeholder="Ej: 1123456789" pattern="^\d{10}$" required>
+  <main class="page-shell">
+    <section class="container">
+      <img src="img/diapadre.jpeg" alt="Sorteo Día del Padre" class="titulo-img">
+
+      <div id="participacion">
+        <h1 class="headline">Participá y ganá descuentos</h1>
+        <p class="subtitle">Completá tus datos, elegí un comercio adherido y obtené tu QR para canjear.</p>
+
+        <div class="info-grid">
+          <div id="comercio" class="readonly"></div>
+          <div id="fecha" class="readonly"></div>
         </div>
-        <small>Ingresá el número sin el 9 inicial (ej: 1123456789)</small>
-        <button type="submit" id="btnParticipar">Participar</button>
-      </form>
-      <div id="errorParticipacion" class="hidden" style="color: red; margin-top: 10px;"></div>
-    </div>
 
-    <div id="postParticipacion" class="hidden" style="display: none; flex-direction: column; align-items: center; text-align: center%;">
-      <p>¡Gracias por participar!</p>
-      <p id="mensajeDescuento" class="hidden">¡Te ganaste un descuento en alguno de los siguientes comercios!</p>
-      <div id="loadingMsg"><span class="spinner"></span> Cargando comercios...</div>
-      <div class="radio-wrapper" id="radioWrapper">
-        <form id="radioForm" class="radio-container"></form>
+        <form id="sorteoForm">
+          <div class="field">
+            <label for="nombre">Nombre</label>
+            <input type="text" id="nombre" placeholder="Escribe tu nombre" required>
+          </div>
+
+          <div class="field">
+            <label for="dni">DNI</label>
+            <input type="text" id="dni" placeholder="Últimos 3 dígitos de DNI" maxlength="3" inputmode="numeric" required>
+          </div>
+
+          <div class="field">
+            <label for="celular">Celular</label>
+            <div class="input-group">
+              <span>+54</span>
+              <input type="tel" id="celular" placeholder="Ej: 1123456789" pattern="^\d{10}$" required>
+            </div>
+            <small>Ingresá el número sin el 9 inicial. Ejemplo: 1123456789</small>
+          </div>
+
+          <button type="submit" id="btnParticipar">Participar</button>
+        </form>
+        <div id="errorParticipacion" class="error-box hidden"></div>
       </div>
-      <button id="generarQR" class="hidden">Obtener descuento</button>
-    </div>
 
-    <div id="qr-container" class="hidden"></div>
-  </div>
+      <div id="postParticipacion" class="hidden">
+        <div class="success-pill">¡Gracias por participar!</div>
+        <p id="mensajeDescuento" class="hidden">Te ganaste un descuento en alguno de los siguientes comercios.</p>
+        <div id="loadingMsg"><span class="spinner"></span> Cargando comercios...</div>
+        <div class="radio-wrapper hidden" id="radioWrapper">
+          <form id="radioForm" class="radio-container"></form>
+        </div>
+        <button id="generarQR" class="hidden">Obtener descuento</button>
+      </div>
+
+      <div id="qr-container" class="hidden"></div>
+    </section>
+  </main>
 
   <script>
     const scriptURL = 'https://script.google.com/macros/s/AKfycbyksMJkkDwZR1gGdWTUH4uwX9yrLJlEizsC5jyDLQ8kiwSlPwmikmuWCWShqoMRIVe_Pw/exec';
@@ -230,7 +454,6 @@
       return 'DSCT-' + Math.abs(hash).toString(36).slice(0, 6).toUpperCase();
     }
 
-    // --- PARTICIPAR con spinner ---
     document.getElementById('sorteoForm').addEventListener('submit', function(e) {
       e.preventDefault();
       ocultarError();
@@ -249,7 +472,7 @@
       const celular = document.getElementById('celular').value.trim();
 
       if (!/^\d{10}$/.test(celular)) {
-        mostrarError("Por favor, ingresá un número válido de celular (10 dígitos, sin 0 ni 15).");
+        mostrarError("Por favor, ingresá un número válido de celular: 10 dígitos, sin 0 ni 15.");
         resetParticiparButton();
         return;
       }
@@ -263,18 +486,11 @@
       formData.append('dni', dni);
       formData.append('celular', celularGlobal);
 
-      fetch(scriptURL, {
-        method: 'POST',
-        body: formData
-      })
+      fetch(scriptURL, { method: 'POST', body: formData })
       .then(response => response.text())
       .then(text => {
         let result;
-        try {
-          result = JSON.parse(text);
-        } catch (e) {
-          result = { success: true };
-        }
+        try { result = JSON.parse(text); } catch (e) { result = { success: true }; }
 
         if (result.success === false) {
           mostrarError(result.error || "Ocurrió un error al participar.");
@@ -333,23 +549,17 @@
           }
 
           mensaje.classList.remove("hidden");
+          form.innerHTML = "";
 
           data.comercios.forEach((com, index) => {
             const label = document.createElement('label');
-
-            let nombreVisible;
-            if (com.link) {
-              nombreVisible = `<a href="${com.link}" target="_blank" rel="noopener noreferrer">${com.nombre}</a> (${com.descripcion})`;
-            } else {
-              nombreVisible = `${com.nombre} (${com.descripcion})`;
-            }
+            const nombreVisible = com.link
+              ? `<a href="${com.link}" target="_blank" rel="noopener noreferrer">${com.nombre}</a> (${com.descripcion})`
+              : `${com.nombre} (${com.descripcion})`;
 
             label.innerHTML = `
-              <input type="radio" 
-                     name="comercio" 
-                     value="${com.nombre}"
-                     ${index === 0 ? 'checked' : ''}>
-              ${nombreVisible}
+              <input type="radio" name="comercio" value="${com.nombre}" ${index === 0 ? 'checked' : ''}>
+              <span>${nombreVisible}</span>
             `;
 
             form.appendChild(label);
@@ -364,7 +574,6 @@
         });
     }
 
-    // --- OBTENER DESCUENTO con spinner ---
     document.getElementById('generarQR').addEventListener('click', function() {
       const btn = this;
 
@@ -381,76 +590,43 @@
       const timestamp = Date.now();
       const raw = celularGlobal + timestamp;
       const codigo = generarHashCorto(raw);
+      const descuento = "";
 
-      const nombreComercio = comercioElegido;
-      const descuento = ""; // opcional, el backend usa el descuento de la hoja Comercios
-
-      const qrContent = `https://aleiva-l.github.io/descuento/validar.html?codigo=${codigo}&comercio_codigo=${encodeURIComponent(nombreComercio)}`;
+      const qrContent = `https://aleiva-l.github.io/descuento/validar.html?codigo=${codigo}&comercio_codigo=${encodeURIComponent(comercioElegido)}`;
 
       const datos = new URLSearchParams();
       datos.append("accion", "registro_descuento");
       datos.append("codigo", codigo);
-      datos.append("comercio", nombreComercio);
+      datos.append("comercio", comercioElegido);
       datos.append("celular", celularGlobal);
       datos.append("descuento", descuento);
 
-      fetch(scriptURL, {
-        method: "POST",
-        body: datos
-      })
+      fetch(scriptURL, { method: "POST", body: datos })
       .then(res => res.json())
       .then(result => {
         let fechaMaxCanje = "Sin fecha";
         if (result.fecha_validez) {
-          const fechaCompleta = result.fecha_validez.split("T")[0]; // "2025-06-01"
+          const fechaCompleta = result.fecha_validez.split("T")[0];
           const [anio, mes, dia] = fechaCompleta.split("-");
           fechaMaxCanje = `${dia}/${mes}/${anio}`;
         }
 
         document.body.innerHTML = '';
-        document.body.style.backgroundColor = '#f0f0f0';
-        document.body.style.display = 'flex';
-        document.body.style.justifyContent = 'center';
         document.body.style.alignItems = 'center';
-        document.body.style.height = '100vh';
         document.body.style.padding = '20px';
-        document.body.style.boxSizing = 'border-box';
-        document.body.style.margin = '0';
 
         const container = document.createElement('div');
-        container.style.backgroundColor = 'white';
-        container.style.padding = '20px';
-        container.style.borderRadius = '10px';
-        container.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.1)';
-        container.style.maxWidth = '400px';
-        container.style.width = '100%';
-        container.style.textAlign = 'center';
-        container.style.display = 'flex';
-        container.style.flexDirection = 'column';
-        container.style.alignItems = 'center';
+        container.className = 'qr-card';
 
         const texto = document.createElement('div');
         texto.innerHTML = `
-          <p style="font-size: 1.2rem; margin-bottom: 10px;">
-            Presentá este QR en el comercio "<strong>${nombreComercio}</strong>". Válido hasta ${fechaMaxCanje}.
-          </p>
-          <p style="color: red; font-weight: bold; font-size: 1rem; margin-bottom: 5px;">
-            Sujeto a condiciones del comercio
-          </p>
-          <p style="color: red; font-weight: bold; font-size: 1rem; margin-bottom: 20px;">
-            ¡Solo válido con efectivo o transferencia!
-          </p>`;
-
-        texto.style.fontSize = '1.2rem';
-        texto.style.marginBottom = '20px';
+          <h1 class="qr-title">Presentá este QR en <strong>${comercioElegido}</strong></h1>
+          <p>Válido hasta <strong>${fechaMaxCanje}</strong>.</p>
+          <p class="qr-warning">Sujeto a condiciones del comercio</p>
+          <p class="qr-warning">Solo válido con efectivo o transferencia</p>`;
 
         const canvasWrapper = document.createElement('div');
-        canvasWrapper.style.width = '100%';
-        canvasWrapper.style.maxWidth = '300px';
-        canvasWrapper.style.aspectRatio = '1';
-        canvasWrapper.style.display = 'flex';
-        canvasWrapper.style.justifyContent = 'center';
-        canvasWrapper.style.alignItems = 'center';
+        canvasWrapper.className = 'qr-box';
 
         QRCode.toCanvas(qrContent, { width: 300 }, function (err, canvas) {
           if (!err) {
@@ -462,14 +638,6 @@
 
             const btnDescargar = document.createElement('button');
             btnDescargar.innerText = 'Descargar QR';
-            btnDescargar.style.marginTop = '20px';
-            btnDescargar.style.backgroundColor = '#4CAF50';
-            btnDescargar.style.color = '#fff';
-            btnDescargar.style.border = 'none';
-            btnDescargar.style.borderRadius = '5px';
-            btnDescargar.style.padding = '10px 20px';
-            btnDescargar.style.cursor = 'pointer';
-            btnDescargar.style.fontSize = '1rem';
             btnDescargar.onclick = () => {
               const link = document.createElement('a');
               link.download = `${codigo}.png`;
@@ -481,11 +649,10 @@
             sugerencia.innerText = 'Descargá el QR y enviátelo por WhatsApp como imagen.';
             sugerencia.style.fontSize = '0.9rem';
             sugerencia.style.marginTop = '10px';
-            sugerencia.style.color = '#555';
+            sugerencia.style.color = '#6b7280';
 
             container.appendChild(btnDescargar);
             container.appendChild(sugerencia);
-
             document.body.appendChild(container);
           }
         });
